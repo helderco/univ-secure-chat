@@ -63,7 +63,9 @@ Where `$HOME_JACORB` is the absolute path to your JacORB clone.
 To run the Sum demo run the following in separate windows.
 
 `$ ns`
+
 `$ jaco org.siriux.chat.Server`
+
 `$ jaco org.siriux.chat.Client <num1> <num2>`
 
 Choose any two numbers, you should get their sum in return.
