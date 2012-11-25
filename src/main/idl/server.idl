@@ -1,0 +1,7 @@
+module sum
+{
+   interface Sum
+   {
+      long sum(in long x, in long y);
+   };
+};

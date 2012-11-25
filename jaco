@@ -1,0 +1,10 @@
+#!/bin/bash
+
+: ${JAR_FILE=target/chat-1.0-SNAPSHOT-jar-with-dependencies.jar}
+
+if [ -s "$1" ] && [ ${1: -4} == ".jar" ]; then
+    JAR_FILE="$1"
+    shift 1
+fi
+
+exec java -Xbootclasspath/p:"$JAR_FILE" "$@"
