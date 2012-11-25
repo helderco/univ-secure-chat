@@ -1,6 +1,8 @@
 # Secure Chat
 
-This Java application allows secure communication between peers using JacORB.
+This Java application allows secure communication between peers using JacORB,
+which is a CORBA implementation in Java. This means it's possible to build
+clients in other languages and platforms.
 
 
 ## Build
@@ -21,7 +23,7 @@ comes with all dependencies.
 
 E.g., to run the server:
 
-`$ ./jaco org.siriux.chat.Server <ior_file such as /tmp/NS_Ref>`
+`$ ./jaco org.siriux.chat.Server`
 
 
 ### JacORB utilities
@@ -69,3 +71,5 @@ To run the Sum demo run the following in separate windows.
 `$ jaco org.siriux.chat.Client <num1> <num2>`
 
 Choose any two numbers, you should get their sum in return.
+
+Note: if you don't have `ns`, replace it for `jaco org.jacorb.naming.NameServer`.
