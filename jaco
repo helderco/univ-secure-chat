@@ -7,4 +7,4 @@ if [ -s "$1" ] && [ ${1: -4} == ".jar" ]; then
     shift 1
 fi
 
-exec java -Xbootclasspath/p:"$JAR_FILE" "$@"
+exec java -Xbootclasspath/p:"$JAR_FILE" -Djava.util.logging.config.file=src/main/resources/logging.properties "$@"
