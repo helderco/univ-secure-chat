@@ -4,11 +4,17 @@ This Java application allows secure communication between peers using JacORB,
 which is a CORBA implementation in Java. This means it's possible to build
 clients in other languages and platforms.
 
+## Steps
+
+In order to run the project one must first:
+	* Clone this project
+	* Get the JacORB Utilities
+	* Build with Maven
 
 ## Build
 
 If you use Netbeans, the Build Project and Clean and Build Project buttons will
-already package a .jar will all dependencies.
+already package a .jar with all dependencies.
 
 On the command line, the equivalent is to do:
 
