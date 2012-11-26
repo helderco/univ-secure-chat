@@ -7,9 +7,9 @@ clients in other languages and platforms.
 ## Steps
 
 In order to run the project one must first:
-	* Clone this project
-	* Get the JacORB Utilities
-	* Build with Maven
+- Clone this project
+- Get the JacORB Utilities
+- Build with Maven
 
 ## Build
 
