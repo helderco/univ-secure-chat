@@ -1,0 +1,18 @@
+module m2m
+{
+
+    interface ServiceEnabler
+    {
+        const unsigned short MaxNumPeers = 65535;
+        typedef sequence<string, MaxNumPeers> PeerList;
+
+        void register(in string peerName);
+
+    };
+
+    interface Machine2Machine
+    {
+        string sendMsg2Machine(in string msg, in string machine);
+    };
+
+};
