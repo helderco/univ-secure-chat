@@ -2,9 +2,8 @@ package org.siriux.chat;
 
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
-import org.omg.CosNaming.NameComponent;
-import org.omg.CosNaming.NamingContext;
-import org.omg.CosNaming.NamingContextHelper;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
 import org.siriux.chat.servant.sum.Sum;
 import org.siriux.chat.servant.sum.SumHelper;
 import org.slf4j.Logger;
@@ -23,12 +22,9 @@ public class Client {
         ORB orb = ORB.init(args, null);
 
         Object objRef = orb.resolve_initial_references("NameService");
+        NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
 
-        NamingContext ncRef = NamingContextHelper.narrow(objRef);
-
-        NameComponent nc = new NameComponent ("Sum", "");
-        NameComponent path[] = {nc};
-        Sum sum = SumHelper.narrow(ncRef.resolve(path));
+        Sum sum = SumHelper.narrow(ncRef.resolve_str("Sum"));
 
         // invoke the operation and print the result
         System.out.println(sum.sum(Integer.parseInt(args[0]), Integer.parseInt(args[1])));

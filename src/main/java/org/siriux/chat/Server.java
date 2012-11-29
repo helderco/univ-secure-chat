@@ -29,9 +29,7 @@ public class Server {
 	    NamingContextExt ncRef = NamingContextExtHelper.narrow(nsRef);
 
 	    // Bind object to name service
-	    NameComponent [] name = new NameComponent[1];
-	    name[0] = new NameComponent("Sum", "");
-	    ncRef.rebind(name, obj);
+	    ncRef.rebind(ncRef.to_name("Sum"), obj);
 
         logger.info("Waiting for client requests...");
 	    orb.run();
