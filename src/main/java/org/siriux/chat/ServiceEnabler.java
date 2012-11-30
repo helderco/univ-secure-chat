@@ -37,6 +37,7 @@ public class ServiceEnabler {
 	// Bind object to name service
 	NameComponent [] name = new NameComponent[1];
 	name[0] = new NameComponent("ServiceEnabler", "");
+        logger.info("Before NameComponent rebind ");
 	ncRef.rebind(name, obj);
 
         logger.info("Waiting for client requests...");

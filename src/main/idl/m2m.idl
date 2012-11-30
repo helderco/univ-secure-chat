@@ -3,10 +3,8 @@ module m2m
 
     interface ServiceEnabler
     {
-        const unsigned short MaxNumPeers = 65535;
-        typedef sequence<string, MaxNumPeers> PeerList;
 
-        void register(in string peerName);
+        void recordPeer(in string peerName);
 
     };
 
