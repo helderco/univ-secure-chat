@@ -1,14 +1,11 @@
 package org.siriux.chat;
 
-import java.util.logging.Level;
 import org.omg.CORBA.ORB;
-import org.omg.CORBA.ORBPackage.InvalidName;
 import org.omg.CORBA.Object;
-import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContext;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.CosNaming.NamingContextHelper;
-import org.omg.CosNaming.NamingContextPackage.CannotProceed;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.siriux.chat.servant.m2m.ServiceEnabler;
 import org.siriux.chat.servant.m2m.ServiceEnablerHelper;
 import org.slf4j.Logger;
@@ -25,19 +22,14 @@ public class Client {
             System.exit(1);
         }
 
-        ORB orb;
-        orb = ORB.init(args, null);
-        Object objRef;
-        objRef = orb.resolve_initial_references("NameService");
-        NamingContext ncRef = NamingContextHelper.narrow(objRef);
+        ORB orb = ORB.init(args, null);
+        Object objRef = orb.resolve_initial_references("NameService");
         
-        NameComponent nc = new NameComponent ("ServiceEnabler", "");
-        NameComponent path[] = {nc};
+        NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
         
-        ServiceEnabler se;
-        se = ServiceEnablerHelper.narrow(ncRef.resolve(path));
-        se.recordPeer("AliceServer");
+        ServiceEnabler se = ServiceEnablerHelper.narrow(ncRef.resolve_str("ServiceEnabler"));
         
-        //orb.run();
+        se.recordPeer("Alice");
+
     }
 }

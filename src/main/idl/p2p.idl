@@ -5,12 +5,13 @@ module m2m
     {
 
         void recordPeer(in string peerName);
+        void getConnectedPeers();
 
     };
 
-    interface Machine2Machine
+    interface Peer2Peer
     {
-        string sendMsg2Machine(in string msg, in string machine);
+        string sendMsg2Peer(in string msg, in string peer);
     };
 
 };

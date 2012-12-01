@@ -2,8 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.siriux.chat.servant.m2m;
+package org.siriux.chat.servant.p2p;
 import java.util.ArrayList;
+import org.siriux.chat.servant.m2m.ServiceEnablerPOA;
+import org.siriux.chat.servant.m2m.ServiceEnablerPOA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -25,8 +27,10 @@ public class ServiceEnablerImpl extends ServiceEnablerPOA {
         peerList.add(peerName);
         logger.info("{} recorded...", peerName);
         
-               
-        //Announce to other peers
+    }
+    
+    public void getConnectedPeers(){
+                //Announce to other peers
         for(String peer: peerList){
             
         }

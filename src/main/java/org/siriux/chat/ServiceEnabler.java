@@ -12,7 +12,7 @@ import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.CosNaming.NamingContextHelper;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
-import org.siriux.chat.servant.m2m.ServiceEnablerImpl;
+import org.siriux.chat.servant.p2p.ServiceEnablerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -34,11 +34,7 @@ public class ServiceEnabler {
 	Object nsRef = orb.resolve_initial_references("NameService");
 	NamingContextExt ncRef = NamingContextExtHelper.narrow(nsRef);
 
-	// Bind object to name service
-	NameComponent [] name = new NameComponent[1];
-	name[0] = new NameComponent("ServiceEnabler", "");
-        logger.info("Before NameComponent rebind ");
-	ncRef.rebind(name, obj);
+	ncRef.rebind(ncRef.to_name("ServiceEnabler"), obj);
 
         logger.info("Waiting for client requests...");
 	orb.run();
