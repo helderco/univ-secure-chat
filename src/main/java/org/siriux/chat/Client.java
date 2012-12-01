@@ -16,11 +16,11 @@ public class Client {
     private static Logger logger = LoggerFactory.getLogger(Client.class);
 
     public static void main(String[] args) throws Exception{
-        
-        if (args.length != 2) {
-            logger.error("Usage: jaco org.siriux.chat.Client <nick> <server>");
-            System.exit(1);
-        }
+//        
+//        if (args.length != 0) {
+//            logger.error("Usage: jaco org.siriux.chat.Client <nick> <server>");
+//            System.exit(1);
+//        }
 
         ORB orb = ORB.init(args, null);
         Object objRef = orb.resolve_initial_references("NameService");
