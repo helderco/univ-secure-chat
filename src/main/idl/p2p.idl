@@ -12,7 +12,7 @@ module m2m
 
     interface Peer2Peer
     {
-        string sendMsg2Peer(in string msg, in string peer);
+        oneway void sendMsg2Peer(in string msg, in string peer);
     };
 
 };

@@ -4,14 +4,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.logging.Level;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
 import org.omg.CosNaming.NamingContext;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
 import org.omg.CosNaming.NamingContextHelper;
+import org.omg.CosNaming.NamingContextPackage.CannotProceed;
+import org.omg.CosNaming.NamingContextPackage.InvalidName;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
+import org.siriux.chat.servant.m2m.Peer2Peer;
+import org.siriux.chat.servant.m2m.Peer2PeerHelper;
 import org.siriux.chat.servant.m2m.ServiceEnabler;
 import org.siriux.chat.servant.m2m.ServiceEnablerHelper;
 import org.siriux.chat.servant.p2p.Peer2PeerImpl;
@@ -69,21 +75,21 @@ public class Client {
         //Client Interface 
         ServiceEnabler se = ServiceEnablerHelper.narrow(ncRef.resolve_str("ServiceEnabler"));
         
-        Client.CLI(se, args[0], server);
+        Client.CLI(se, args[0], server, ncRef);
     }
 
-    private static void CLI(ServiceEnabler se, String clientName, RunnableThread server) throws IOException {
+    private static void CLI(ServiceEnabler se, String clientName, RunnableThread server, NamingContextExt ncRef) throws IOException {
         String CurLine; // Line read from standard in
-        boolean isToExit = false; 
+        boolean isToExit = false;
+        Peer2Peer p2p = null;
         
         System.out.println("Entering CLI: (use 'help' for a command list)");
-        InputStreamReader converter = new InputStreamReader(System.in);
-        BufferedReader in = new BufferedReader(converter);
         
+        java.util.Scanner input = new java.util.Scanner(System.in);
         
         do{
             System.out.print(">");
-            CurLine = in.readLine();
+            CurLine = input.nextLine();
             
             if( CurLine.startsWith("help")  ){
                 System.out.println("exit   :Exits the application");
@@ -107,18 +113,40 @@ public class Client {
             if( CurLine.startsWith("chat ") ){
                 String[] tokens = CurLine.split(" ");
                 boolean _isToExit = false;
-                
-                //Connect to Peer
+                try {
+                    //Connect to Peer
+                    p2p = Peer2PeerHelper.narrow(ncRef.resolve_str(tokens[1]));
+                } catch (NotFound ex) {
+                    java.util.logging.Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (CannotProceed ex) {
+                    java.util.logging.Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (InvalidName ex) {
+                    java.util.logging.Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
                 do{
                     System.out.print("@" + tokens[1] + ">");
-                    CurLine = in.readLine();
-                    if( CurLine.startsWith("/exit") ){
-                        //Cancel Connection to Peer
-                        //Close session
+                    CurLine = input.nextLine();
+                    if (input.hasNextLine()) {
+                        input.nextLine();
+                    }
+                    for(int i=0; i < new String("@" + tokens[1] + ">" + CurLine).length(); i++){
+                            System.out.print("\b");
+                    }
+                    if( CurLine.startsWith("/close") ){
+                        //'XXX' Cancel Connection to Peer
+                        //'XXX' Close session
                         System.out.println("Closing session...");
                         System.out.println("Session closed.");
                         _isToExit = true;
+                    }else{
+                        p2p.sendMsg2Peer(CurLine, clientName);
+                                
+//                        for(int i=1; i < new String("@" + tokens[1] + ">").length(); i++){
+//                            System.out.print("\b");
+//                        }
+                        System.out.println(clientName + " says: " + CurLine.toString());
+                        //System.out.print("@" + tokens[1] + ">");
                     }
                  
                 }while(!_isToExit);
