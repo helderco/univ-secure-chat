@@ -5,7 +5,6 @@
 package org.siriux.chat.servant.p2p;
 
 import org.siriux.chat.servant.m2m.Peer2PeerPOA;
-import org.siriux.chat.servant.m2m.Peer2PeerPOA;
 
 /**
  *

@@ -1,11 +1,12 @@
 module m2m
 {
+    typedef sequence<string> peerList;
 
     interface ServiceEnabler
     {
 
         void recordPeer(in string peerName);
-        void getConnectedPeers();
+        peerList getConnectedPeers();
 
     };
 

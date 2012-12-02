@@ -6,6 +6,7 @@ package org.siriux.chat.servant.p2p;
 import java.util.ArrayList;
 import org.siriux.chat.servant.m2m.ServiceEnablerPOA;
 import org.siriux.chat.servant.m2m.ServiceEnablerPOA;
+import org.siriux.chat.servant.m2m.ServiceEnablerPOA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
@@ -26,14 +27,11 @@ public class ServiceEnablerImpl extends ServiceEnablerPOA {
         //Record Peer
         peerList.add(peerName);
         logger.info("{} recorded...", peerName);
-        
     }
     
-    public void getConnectedPeers(){
-                //Announce to other peers
-        for(String peer: peerList){
-            
-        }
+    public String[] getConnectedPeers(){
+        //Announce to other peers
+        return (String []) peerList.toArray (new String [peerList.size ()]);
     }
     
 }

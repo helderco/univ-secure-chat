@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 public class ServiceEnabler {
     
     public static void main(String[] args) throws Exception {
+        
         ORB orb = ORB.init(args, null);
         Object objRef = orb.resolve_initial_references("RootPOA");
         
@@ -40,6 +41,6 @@ public class ServiceEnabler {
 	orb.run();
     }
 
-    private static Logger logger = LoggerFactory.getLogger(Server.class);
+    private static Logger logger = LoggerFactory.getLogger(ServiceEnabler.class);
 
 }
