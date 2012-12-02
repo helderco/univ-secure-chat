@@ -5,7 +5,7 @@ module m2m
     interface ServiceEnabler
     {
 
-        void recordPeer(in string peerName);
+        string recordPeer(in string peerName);
         peerList getConnectedPeers();
 
     };

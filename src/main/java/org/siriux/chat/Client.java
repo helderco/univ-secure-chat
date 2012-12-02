@@ -3,6 +3,7 @@ package org.siriux.chat;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
 import org.omg.CosNaming.NamingContext;
@@ -18,21 +19,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+
 class RunnableThread implements Runnable {
 
-	Thread runner;
-        ORB orb;
-	public RunnableThread() {
-	}
-	public RunnableThread(String threadName, ORB orb) {
-		runner = new Thread(this, threadName); // (1) Create a new thread.
-		System.out.println(runner.getName());
-		runner.start(); // (2) Start the thread.
-                this.orb = orb;
-	}
-	public void run() {
-		orb.run();
-	}
+    Thread runner;
+    ORB orb;
+        
+    public RunnableThread(String threadName, ORB orb) {
+            runner = new Thread(this, threadName); // (1) Create a new thread.
+            System.out.println(runner.getName());
+            runner.start(); // (2) Start the thread.
+            this.orb = orb;
+    }
+
+    public void run() {
+        orb.run();
+    }
 }
 
 public class Client {
@@ -67,14 +69,14 @@ public class Client {
         //Client Interface 
         ServiceEnabler se = ServiceEnablerHelper.narrow(ncRef.resolve_str("ServiceEnabler"));
         
-        Client.CLI(se, args[0]);
+        Client.CLI(se, args[0], server);
     }
 
-    private static void CLI(ServiceEnabler se, String clientName) throws IOException {
+    private static void CLI(ServiceEnabler se, String clientName, RunnableThread server) throws IOException {
         String CurLine; // Line read from standard in
-        int isToExit = 0; 
+        boolean isToExit = false; 
         
-        System.out.println("Entering CLI: ");
+        System.out.println("Entering CLI: (use 'help' for a command list)");
         InputStreamReader converter = new InputStreamReader(System.in);
         BufferedReader in = new BufferedReader(converter);
         
@@ -83,19 +85,48 @@ public class Client {
             System.out.print(">");
             CurLine = in.readLine();
             
-            if( CurLine.equals("/exit") ){
-                isToExit = 1;
+            if( CurLine.startsWith("help")  ){
+                System.out.println("exit   :Exits the application");
+                System.out.println("join   :Joins the Server");
+                System.out.println("users  :Gets a users list");
+                System.out.println("help   :Shows this list");
+            }else
+            if( CurLine.startsWith("exit")  ){
+                isToExit = true;
+                server.orb.destroy();
+            }else
+            if( CurLine.startsWith("join") ){
+                System.out.println(se.recordPeer(clientName));
+            
+            }else
+            if( CurLine.startsWith("users") ){
+                for (String user : Arrays.asList(se.getConnectedPeers())) {
+                    System.out.println(user);                
+                }
+            }else
+            if( CurLine.startsWith("chat ") ){
+                String[] tokens = CurLine.split(" ");
+                boolean _isToExit = false;
+                
+                //Connect to Peer
+
+                do{
+                    System.out.print("@" + tokens[1] + ">");
+                    CurLine = in.readLine();
+                    if( CurLine.startsWith("/exit") ){
+                        //Cancel Connection to Peer
+                        //Close session
+                        System.out.println("Closing session...");
+                        System.out.println("Session closed.");
+                        _isToExit = true;
+                    }
+                 
+                }while(!_isToExit);
             }
+                
             
-            if( CurLine.equals("/join") ){
-                se.recordPeer(clientName);
-            }
-            
-            if( CurLine.equals("/users") ){
-                System.out.println(se.getConnectedPeers());
-            }
-            
-        }while (isToExit != 1);
-            
+        }while (!isToExit);
+        
+        System.out.print("bye!"); 
     }
 }

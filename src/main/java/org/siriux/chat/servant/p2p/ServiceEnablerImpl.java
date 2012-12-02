@@ -23,10 +23,11 @@ public class ServiceEnablerImpl extends ServiceEnablerPOA {
      *
      * @param peerName
      */
-    public void recordPeer(String peerName){
+    public String recordPeer(String peerName){
         //Record Peer
         peerList.add(peerName);
         logger.info("{} recorded...", peerName);
+        return peerName + " joined.";
     }
     
     public String[] getConnectedPeers(){
