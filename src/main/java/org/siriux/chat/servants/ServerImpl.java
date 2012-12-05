@@ -30,6 +30,6 @@ public class ServerImpl extends ServerPOA {
 
     @Override
     public String[] getConnectedPeers() {
-        return (String[]) peers.toArray();
+        return peers.toArray(new String[peers.size()]);
     }
 }
