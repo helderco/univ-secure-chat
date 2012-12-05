@@ -116,7 +116,7 @@ public class Client implements Runnable {
                     try {
                         user = input.split(" ")[1];
                         peer = PeerHelper.narrow(ncRef.resolve_str("Peers/"+user));
-                        System.out.printf("Your're now connected with %s. Type `/quit` to exit chat session.\n", user);
+                        System.out.printf("Your're now connected with %s. Type `/close` to close this chat session.\n", user);
                     }
                     catch (Exception ex) {
                         logger.warn("Couldn't start chat with {}.", user, ex);
@@ -127,7 +127,7 @@ public class Client implements Runnable {
                     while (true) {
                         String msg = prompt("@" + user + "> ");
 
-                        if (msg.startsWith("/quit")) {
+                        if (msg.startsWith("/close")) {
                             System.out.printf("\nYou've left the chat with %s.\n", user);
                             break;
                         }
