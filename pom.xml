@@ -51,7 +51,7 @@
                     <compiler>jacorb</compiler>
                     <sources>
                         <source>
-                            <packagePrefix>${packagePrefix}.servant</packagePrefix>
+                            <packagePrefix>${packagePrefix}</packagePrefix>
                         </source>
                     </sources>
                 </configuration>

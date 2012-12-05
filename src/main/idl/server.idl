@@ -1,7 +1,20 @@
-module sum
+module servants
 {
-   interface Sum
-   {
-      long sum(in long x, in long y);
-   };
+    exception NameAlreadyUsed {};
+    exception UnknownPeer {};
+
+    typedef sequence<string> List;
+
+    interface Server
+    {
+        void join(in string name) raises (NameAlreadyUsed);
+        void leave(in string name) raises (UnknownPeer);
+        List getConnectedPeers();
+    };
+
+    interface Peer
+    {
+        string getName();
+        oneway void send(in string message, in string peer);
+    };
 };
