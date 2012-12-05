@@ -1,4 +1,62 @@
 #!/bin/bash
 
-exec java -Xbootclasspath/p:"${CHAT_JAR=target/chat-1.0-SNAPSHOT-jar-with-dependencies.jar}" \
-          -Djava.util.logging.config.file="${LOG_PROPS_PATH=src/main/resources/}logging.properties" "$@"
+: ${CHAT_JAR_FILE=chat-1.0-SNAPSHOT-jar-with-dependencies.jar}
+: ${CHAT_JAR=target/$CHAT_JAR_FILE}
+
+: ${LOG_PROPS_FILE=logging.properties}
+: ${LOG_PROPS=$HOME/.schat/$LOG_PROPS_FILE}
+
+# Override from arguments with the following order:
+# $ jaco [jar_file] [logging_properties] [ns|nmg]
+#
+# If you need to pass an argument in quotes, wrap it with single quotes:
+# $ jaco ns arg1 '"spaced arg"'
+
+# Allow override of jar file from argument
+if [ -s "$1" ] && [ ${1: -4} == ".jar" ]; then
+    CHAT_JAR="$1"
+    shift
+
+# If not from argument, allow override from local dir if jar exists
+elif [ -s "$CHAT_JAR_FILE" ]; then
+    CHAT_JAR="$CHAT_JAR_FILE"
+fi
+
+# Allow override for logging file from argument
+if [ -f "$1" ] && [ ${1: -11} == ".properties" ]; then
+    LOG_PROPS="$1"
+    shift
+
+# If not from argument, allow override from local dir if file exists
+elif [ -f "$LOG_PROPS_FILE" ]; then
+    LOG_PROPS="$LOG_PROPS_FILE"
+
+# If not in default dir ($HOME/.schat/), extract from jar
+elif [ ! -f "$LOG_PROPS" ]; then
+    jar xf "$CHAT_JAR" logging.properties
+    mv logging.properties "$LOG_PROPS_FILE" # just in case a different filename was chosen
+    LOG_PROPS="$LOG_PROPS_FILE"
+fi
+
+# Write java exec command
+java_exec="java -Xbootclasspath/p:\"${CHAT_JAR}\""
+
+# Append logging properties if exists
+if [ -f "$LOG_PROPS" ]; then
+    java_exec="$java_exec -Djava.util.logging.config.file=\"${LOG_PROPS}\""
+fi
+
+# Start the JacORB name server if `ns` is provided
+if [ "$1" == "ns" ]; then
+    shift
+    java_exec="$java_exec org.jacorb.naming.NameServer"
+
+# Start the JacORB name manager if `nmg` is provided
+elif [ "$1" == "nmg" ]; then
+    shift
+    java_exec="$java_exec org.jacorb.naming.namemanager.NameManager"
+fi
+
+# Execute
+#echo "$java_exec $@"
+eval "$java_exec $@"
