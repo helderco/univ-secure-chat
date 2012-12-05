@@ -174,7 +174,7 @@ public class Client implements Runnable {
     }
 
     private static String prompt(String prompt) {
-        String input = askCleanInput(prompt);
+        String input = askInput(prompt);
 
         for (int i = 0; i < (prompt + input).length(); i++) {
             System.out.print("\b");
