@@ -37,10 +37,13 @@ public class Server {
 
             // Wait for requests
             logger.info("Waiting for client requests...");
+            System.out.println("Waiting for client requests...");
             orb.run();
         }
         catch (Exception ex) {
-            logger.error("Could not run ORB.", ex);
+            logger.debug(ex.getLocalizedMessage(), ex);
+            logger.error(ex.getLocalizedMessage());
+            System.err.println("Couldn't start chat server. See log for details.");
         }
     }
 }

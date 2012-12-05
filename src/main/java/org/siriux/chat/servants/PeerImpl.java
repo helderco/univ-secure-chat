@@ -20,6 +20,6 @@ public class PeerImpl extends PeerPOA {
             System.out.print("\b");
         }
         System.out.println(from + " says: " + message);
-        System.out.print("@" + from + "> ");
+        System.out.print("> ");
     }
 }

@@ -7,6 +7,7 @@ import org.omg.CORBA.ORB;
 import org.omg.CORBA.Object;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 import org.siriux.chat.servants.NameAlreadyUsed;
@@ -63,9 +64,15 @@ public class Client implements Runnable {
             Object srvRef = poa.servant_to_reference(new PeerImpl(args[0]));
             ncRef.rebind(ncRef.to_name("Peers/" + args[0]), srvRef);
         }
+        catch (NotFound ex) {
+            logger.error("Server not found.");
+            System.err.println("Server not found.");
+            System.exit(1);
+        }
         catch (Exception ex) {
-            logger.error("Problem starting chat.", ex);
-            System.err.println("Couldn't start chat. See log for details.");
+            logger.debug(ex.getLocalizedMessage(), ex);
+            logger.error(ex.getLocalizedMessage());
+            System.err.println("Couldn't start chat client. See log for details.");
             System.exit(1);
         }
 
@@ -76,6 +83,12 @@ public class Client implements Runnable {
         }
         catch (NameAlreadyUsed ex) {
             System.err.println("Name already in use.");
+            System.exit(1);
+        }
+        catch (Exception ex) {
+            logger.debug(ex.getLocalizedMessage(), ex);
+            logger.error(ex.getLocalizedMessage());
+            System.err.println("Couldn't connect to server.");
             System.exit(1);
         }
 
@@ -119,7 +132,8 @@ public class Client implements Runnable {
                         System.out.printf("Your're now connected with %s. Type `/close` to close this chat session.\n", user);
                     }
                     catch (Exception ex) {
-                        logger.warn("Couldn't start chat with {}.", user, ex);
+                        logger.warn("Couldn't start chat with {}.", user);
+                        logger.debug(ex.getLocalizedMessage(), ex);
                         System.err.printf("Couldn't Start chat user %s.", user);
                     }
 
@@ -128,7 +142,7 @@ public class Client implements Runnable {
                         String msg = prompt("@" + user + "> ");
 
                         if (msg.startsWith("/close")) {
-                            System.out.printf("\nYou've left the chat with %s.\n", user);
+                            System.out.printf("You've left the chat with %s.\n", user);
                             break;
                         }
 
