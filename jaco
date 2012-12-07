@@ -1,62 +1,115 @@
 #!/bin/bash
 
+# The following vars can be overriden by exporting
+#
+# E.g:
+#  $ export LOG_PROPS=~/.schat_logging; jaco ns
+#
 : ${CHAT_JAR_FILE=chat-1.0-SNAPSHOT-jar-with-dependencies.jar}
 : ${CHAT_JAR=target/$CHAT_JAR_FILE}
 
-: ${LOG_PROPS_FILE=logging.properties}
-: ${LOG_PROPS=$HOME/.schat/$LOG_PROPS_FILE}
+: ${LOG_PROPS=logging.properties}
 
-# Override from arguments with the following order:
-# $ jaco [jar_file] [logging_properties] [ns|nmg]
-#
-# If you need to pass an argument in quotes, wrap it with single quotes:
-# $ jaco ns arg1 '"spaced arg"'
+: ${DEBUG=false}
 
-# Allow override of jar file from argument
-if [ -s "$1" ] && [ ${1: -4} == ".jar" ]; then
-    CHAT_JAR="$1"
-    shift
+# Print usage
+usage() {
+    echo "Usage: $(basename $0) [opts] [alias] [other args]"
+    echo
+    echo "Options:"
+    echo "  -j <jar_file>    Choose an alternative jar file."
+    echo "  -l <log_prop>    Choose an alternative logging properties file."
+    echo
+    echo "  -i <file>        Set name service ior filnename (jacorb.naming.ior_filename)."
+    echo "  -n <file|http>   Set name service initial reference (ORBInitRef.NameService)."
+    echo "  -N <address>     Same as -n http://<address[:port]>/NS_Ref."
+    echo "  -P <port>        Set Object Adapter port (OAPort)."
+    echo "  -A <address>     Set Object Adapter address (OAAddress)."
+    echo
+    echo "  -d               Debug java command produced by jaco."
+    echo "  -h               Show this help message and quit."
+    echo
+    echo "Aliases:"
+    echo "  ns      org.jacorb.naming.NameServer"
+    echo "  nmg     org.jacorb.naming.namemanager.NameManager"
+    echo "  Server  org.siriux.chat.cli.Server"
+    echo "  Client  org.siriux.chat.cli.Client"
+    echo
+}
 
-# If not from argument, allow override from local dir if jar exists
-elif [ -s "$CHAT_JAR_FILE" ]; then
+# Show usage if no arguments are provided
+if [ $# == 0 ]; then
+    set -- "-h"
+fi
+
+# Declare array to store the arguments to java
+declare -a jargs
+
+# Process some
+while getopts :j:l:n:N:i:A:P:D:dh opt; do
+    case $opt in
+        j) CHAT_JAR="$OPTARG"; CHAT_JAR_FILE="" ;;
+        l) LOG_PROPS="$OPTARG" ;;
+
+        i) jargs+=("-Djacorb.naming.ior_filename=\"$OPTARG\"") ;;
+        n) jargs+=("-DORBInitRef.NameService=$OPTARG") ;;
+        N) jargs+=("-DORBInitRef.NameService=http://$OPTARG/NS_Ref") ;;
+
+        A) jargs+=("-DOAAddress=$OPTARG") ;;
+        P) jargs+=("-DOAPort=$OPTARG") ;;
+        D) jargs+=("-D$OPTARG") ;;
+
+        d) DEBUG=true ;;
+        h) usage; exit ;;
+
+       \?) echo "$(basename $0): ignoring unkown argument -$OPTARG" >&2 ;;
+        :) echo "$(basename $0): option -$OPTARG requires a value" >&2
+           exit 1 ;;
+    esac
+done
+
+# Remove processed arguments
+shift $((OPTIND-1))
+
+# If not from argument, allow jar to be overriden from local dir
+if [ -s "$CHAT_JAR_FILE" ]; then
     CHAT_JAR="$CHAT_JAR_FILE"
 fi
 
-# Allow override for logging file from argument
-if [ -f "$1" ] && [ ${1: -11} == ".properties" ]; then
-    LOG_PROPS="$1"
-    shift
+# Set classpath to jar with dependencies
+jargs=("-Xbootclasspath/p:\"${CHAT_JAR}\"" "${jargs[@]}")
 
-# If not from argument, allow override from local dir if file exists
-elif [ -f "$LOG_PROPS_FILE" ]; then
-    LOG_PROPS="$LOG_PROPS_FILE"
-
-# If not in default dir ($HOME/.schat/), extract from jar
-elif [ ! -f "$LOG_PROPS" ]; then
-    jar xf "$CHAT_JAR" logging.properties
-    mv logging.properties "$LOG_PROPS_FILE" # just in case a different filename was chosen
-    LOG_PROPS="$LOG_PROPS_FILE"
+# If logging properties file does not exist, extract from jar
+if [ ! -f "$LOG_PROPS" ]; then
+    echo "$(basename $0): logging properties file \"$LOG_PROPS\" not valid. Extracting from jar." >&2
+    LOG_PROPS=logging.properties
+    jar xf "$CHAT_JAR" $LOG_PROPS
 fi
 
-# Write java exec command
-java_exec="java -Xbootclasspath/p:\"${CHAT_JAR}\""
+# Add logging properties
+jargs+=("-Djava.util.logging.config.file=\"${LOG_PROPS}\"")
 
-# Append logging properties if exists
-if [ -f "$LOG_PROPS" ]; then
-    java_exec="$java_exec -Djava.util.logging.config.file=\"${LOG_PROPS}\""
-fi
+# Loop remaining positional arguments (aliases and other arguments)
+for i in "$@"; do
+    case $i in
+         ns) jargs+=("org.jacorb.naming.NameServer") ;;
+        nmg) jargs+=("org.jacorb.naming.namemanager.NameManager") ;;
 
-# Start the JacORB name server if `ns` is provided
-if [ "$1" == "ns" ]; then
+        Server) jargs+=("org.siriux.chat.cli.Server") ;;
+        Client) jargs+=("org.siriux.chat.cli.Client") ;;
+
+        *) jargs+=("$i") ;;
+    esac
     shift
-    java_exec="$java_exec org.jacorb.naming.NameServer"
+done
 
-# Start the JacORB name manager if `nmg` is provided
-elif [ "$1" == "nmg" ]; then
-    shift
-    java_exec="$java_exec org.jacorb.naming.namemanager.NameManager"
-fi
+# Reset arguments to the processed jargs array
+set -- "${jargs[@]}"
 
 # Execute
-#echo "$java_exec $@"
-eval "$java_exec $@"
+if $DEBUG ; then
+    echo "java $@"
+else
+    eval "java $@"
+fi
+
