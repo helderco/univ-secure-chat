@@ -4,12 +4,15 @@ module servants
     exception UnknownPeer {};
 
     typedef sequence<string> List;
+    typedef sequence<octet> encryptedBytes;
 
     interface Server
     {
         void join(in string name) raises (NameAlreadyUsed);
         void leave(in string name) raises (UnknownPeer);
         List getConnectedPeers();
+        string genKeyPair(in string peerName, in unsigned long vDays,
+                          in unsigned long nbits, in encryptedBytes sKey);
     };
 
     interface Peer

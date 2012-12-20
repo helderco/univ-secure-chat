@@ -108,6 +108,7 @@ public class Client implements Runnable {
                 if (input.startsWith("/help")) {
                     System.out.println("  /users          Gets a list of connected users");
                     System.out.println("  /chat <nick>    Chat with user");
+                    System.out.println("  /keypair        Ask server for a keypair");
                     System.out.println("  /help           Show this help");
                     System.out.println("  /quit           Quit application");
                     System.out.println();
@@ -148,6 +149,8 @@ public class Client implements Runnable {
 
                         peer.send(msg, args[0]);
                     }
+                }else if (input.startsWith("/keypair")) {
+                    //System.out.println(server.genKeyPair("RSA", 2048, "abcd").getBytes());
                 }
             }
 
