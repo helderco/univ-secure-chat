@@ -171,7 +171,7 @@ public class Client implements Runnable {
                 t.join();
             }
             catch (InterruptedException ex) {
-                // Nothing to do here
+                logger.info("Exiting thread from interruption.");
             }
         }
     }

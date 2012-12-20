@@ -26,7 +26,9 @@ usage() {
     echo "  -P <port>        Set Object Adapter port (OAPort)."
     echo "  -A <address>     Set Object Adapter address (OAAddress)."
     echo
-    echo "  -d               Debug java command produced by jaco."
+    echo "  -k <keystore>    Set an alternative location for the keystore (jacorb.security.keystore)."
+    echo
+    echo "  -d               Debug java command produced."
     echo "  -h               Show this help message and quit."
     echo
     echo "Aliases:"
@@ -46,7 +48,7 @@ fi
 declare -a jargs
 
 # Process some
-while getopts :j:l:n:N:i:A:P:D:dh opt; do
+while getopts :j:l:n:N:i:A:P:D:k:dh opt; do
     case $opt in
         j) CHAT_JAR="$OPTARG"; CHAT_JAR_FILE="" ;;
         l) LOG_PROPS="$OPTARG" ;;
@@ -58,6 +60,8 @@ while getopts :j:l:n:N:i:A:P:D:dh opt; do
         A) jargs+=("-DOAAddress=$OPTARG") ;;
         P) jargs+=("-DOAPort=$OPTARG") ;;
         D) jargs+=("-D$OPTARG") ;;
+
+        k) jargs+=("-Djacorb.security.keystore=$OPTARG") ;;
 
         d) DEBUG=true ;;
         h) usage; exit ;;
@@ -81,7 +85,6 @@ jargs=("-Xbootclasspath/p:\"${CHAT_JAR}\"" "${jargs[@]}")
 
 # If logging properties file does not exist, extract from jar
 if [ ! -f "$LOG_PROPS" ]; then
-    echo "$(basename $0): logging properties file \"$LOG_PROPS\" not valid. Extracting from jar." >&2
     LOG_PROPS=logging.properties
     jar xf "$CHAT_JAR" $LOG_PROPS
 fi
@@ -103,13 +106,12 @@ for i in "$@"; do
     shift
 done
 
-# Reset arguments to the processed jargs array
-set -- "${jargs[@]}"
-
 # Execute
+java_cmd="java ${jargs[@]}"
+
 if $DEBUG ; then
-    echo "java $@"
+    echo $java_cmd
 else
-    eval "java $@"
+    eval $java_cmd
 fi
 
