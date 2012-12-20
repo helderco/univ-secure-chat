@@ -76,6 +76,7 @@ import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.BASE64Encoder;
 
 public class ServerImpl extends ServerPOA {
 
@@ -108,9 +109,9 @@ public class ServerImpl extends ServerPOA {
         } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException ex) {
             logger.debug(ex.getLocalizedMessage(), ex);
         }
-	if (Key == null) {
-		throw new RuntimeException("Got null key from keystore!"); 
-        }
+	//if (Key == null) {
+	//	throw new RuntimeException("Got null key from keystore!"); 
+        //}
         
         
         privKey = (RSAPrivateCrtKey) Key;
@@ -160,34 +161,34 @@ public class ServerImpl extends ServerPOA {
     }
     
     @Override
-    public String genKeyPair(String peerName, int vDays, int nbits, byte[] encrypted) {
+    public String genKeyPair(String peerName, int vDays, int nbits, String password) {
   
-        //Decode skey with privKey
-        byte[] encryptionByte = null;
-        Cipher cipher = null;
-        try {
-            cipher = Cipher.getInstance("RSA");
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
-            logger.debug(ex.getLocalizedMessage(), ex);
-        }
-        try {
-            cipher.init(Cipher.DECRYPT_MODE, privKey);
-        } catch (InvalidKeyException ex) {
-            logger.debug(ex.getLocalizedMessage(), ex);
-        }
-        try {
-            encryptionByte = cipher.doFinal(encrypted);
-        } catch (IllegalBlockSizeException | BadPaddingException ex) {
-            logger.debug(ex.getLocalizedMessage(), ex);
-        }
-        
-        //Got sKey
-        logger.info("Got Session Key for {}...", peerName);
-        
+//        //Decode skey with privKey
+//        byte[] encryptionByte = null;
+//        Cipher cipher = null;
+//        try {
+//            cipher = Cipher.getInstance("RSA");
+//        } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
+//            logger.debug(ex.getLocalizedMessage(), ex);
+//        }
+//        try {
+//            cipher.init(Cipher.DECRYPT_MODE, privKey);
+//        } catch (InvalidKeyException ex) {
+//            logger.debug(ex.getLocalizedMessage(), ex);
+//        }
+//        try {
+//            encryptionByte = cipher.doFinal(encrypted);
+//        } catch (IllegalBlockSizeException | BadPaddingException ex) {
+//            logger.debug(ex.getLocalizedMessage(), ex);
+//        }
+//        
+//        //Got sKey
+//        logger.info("Got Session Key for {}...", peerName);
+//        
         try {
             //Create Certificate
             logger.info("Creating certificate for {}...", peerName);
-            this.createCertificate(peerName, vDays, nbits, new String(encryptionByte));
+            this.createCertificate(peerName, vDays, nbits, password);
             
         } catch (IOException | InvalidKeyException | SecurityException
                 | SignatureException | NoSuchAlgorithmException | DataLengthException
@@ -196,7 +197,16 @@ public class ServerImpl extends ServerPOA {
             logger.debug(ex.getLocalizedMessage(), ex);
         }
                
-        //Encrypt privKey with sKey
+        Key peerKey = null;
+        try {
+            peerKey = ks.getKey(peerName, password.toCharArray());
+        } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException ex) {
+            logger.debug(ex.getLocalizedMessage(), ex);
+        }
+        String b64 = new BASE64Encoder().encode(peerKey.getEncoded());
+        System.out.println("-----BEGIN PRIVATE KEY-----");
+        System.out.println(b64);
+        System.out.println("-----END PRIVATE KEY-----");
         //Send privKey and Cert
         return "";
     }

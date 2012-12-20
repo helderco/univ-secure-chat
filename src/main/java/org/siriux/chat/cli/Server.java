@@ -91,13 +91,7 @@ public class Server implements Runnable {
             Object nsRef = orb.resolve_initial_references("NameService");
             NamingContextExt ncRef = NamingContextExtHelper.narrow(nsRef);
 
-            // Bind Server servant
-            Object obj;
-            obj = poa.servant_to_reference(new ServerImpl(ks, ksPass));
-            ncRef.rebind(ncRef.to_name("Server"), obj);
-
-            // Create context for peers
-            ncRef.rebind_context(ncRef.to_name("Peers"), ncRef);
+            
 
             
             Thread t = new Thread(new Server());
@@ -140,6 +134,13 @@ public class Server implements Runnable {
                                     new java.security.cert.Certificate[]{crt});
                 }else if (input.startsWith("/run")) {
                     if(tIsRunning == false){
+                        // Bind Server servant
+            Object obj;
+            obj = poa.servant_to_reference(new ServerImpl(ks, ksPass));
+            ncRef.rebind(ncRef.to_name("Server"), obj);
+
+            // Create context for peers
+            ncRef.rebind_context(ncRef.to_name("Peers"), ncRef);
                         t.start();
                     }
                     System.out.println("Server is running.");
