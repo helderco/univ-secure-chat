@@ -10,8 +10,7 @@ module servants
         void join(in string name) raises (NameAlreadyUsed);
         void leave(in string name) raises (UnknownPeer);
         List getConnectedPeers();
-        string genKeyPair(in string peerName, in unsigned long vDays,
-                          in unsigned long nbits, in string sKey);
+        string genKeyPair(in string peerName, in string nbits, in string sKey);
     };
 
     interface Peer

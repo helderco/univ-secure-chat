@@ -77,7 +77,7 @@ public class Server implements Runnable {
             //Load Keystore
             logger.info("Loading a new KeyStore...");
             ks.load(null, null);
-            ks.store( new FileOutputStream( "ServerKeyStore" ), ksPass.toCharArray() );
+            //ks.store( new FileOutputStream( "ServerKeyStore" ), ksPass.toCharArray() );
             
             
             orb = ORB.init(args, null);
@@ -116,6 +116,17 @@ public class Server implements Runnable {
                     break;
                 }
                 else if (input.startsWith("/ssc")) {
+                    
+//                    Runtime.getRuntime().exec("keytool -genkey -keyalg RSA -keysize 1024 -alias server -validity 25000 " +
+//                                                "-keystore server_ks -storepass storepassword " +
+//                                                "-keypass keypassword " +
+//                                                " -dname \"CN=JSSE SSL Demo Server, O=JacORB\"");
+                    //'XXX' get <nbits>
+                    Runtime.getRuntime().exec("keytool -genkeypair -alias serverkey -dname cn=org.siriux.chat.Server" + 
+                                              " -validity 365 -keyalg RSA -keysize 1024 " +
+                                              " -keypass serverkeypass -storetype jceks -keystore server.jck -storepass storepass ");
+                    
+                    /*
                     // 'XXX' GET SECOND ARGUMENT
                     int nbits = Integer.parseInt("1024");
                     String domainName = "Server";
@@ -132,16 +143,19 @@ public class Server implements Runnable {
                    ks.setKeyEntry(domainName, KPair.getPrivate(),  
                                     ksPass.toCharArray(),  
                                     new java.security.cert.Certificate[]{crt});
+                   */
                 }else if (input.startsWith("/run")) {
                     if(tIsRunning == false){
                         // Bind Server servant
-            Object obj;
-            obj = poa.servant_to_reference(new ServerImpl(ks, ksPass));
-            ncRef.rebind(ncRef.to_name("Server"), obj);
+                    Object obj;
+                    //obj = poa.servant_to_reference(new ServerImpl(ks, ksPass));
+                    obj = poa.servant_to_reference(new ServerImpl("server.jck", "storepass"));
+                    ncRef.rebind(ncRef.to_name("Server"), obj);
 
-            // Create context for peers
-            ncRef.rebind_context(ncRef.to_name("Peers"), ncRef);
+                    // Create context for peers
+                    ncRef.rebind_context(ncRef.to_name("Peers"), ncRef);
                         t.start();
+                        tIsRunning = true;
                     }
                     System.out.println("Server is running.");
                 }
@@ -150,7 +164,7 @@ public class Server implements Runnable {
         }
         finally {
 
-            ks.store( new FileOutputStream( "ServerKeyStore" ), ksPass.toCharArray() );     
+            //ks.store( new FileOutputStream( "ServerKeyStore" ), ksPass.toCharArray() );     
             
             orb.destroy();
 
@@ -167,7 +181,7 @@ public class Server implements Runnable {
         catch (InvalidName | AdapterInactive | ServantNotActive
                 | WrongPolicy | org.omg.CosNaming.NamingContextPackage.InvalidName
                 | NotFound | CannotProceed | IOException | NoSuchAlgorithmException
-                | CertificateException | NumberFormatException | KeyStoreException ex) {
+                | CertificateException | NumberFormatException ex) {
             logger.debug(ex.getLocalizedMessage(), ex);
             logger.error(ex.getLocalizedMessage());
             System.err.println("Couldn't start server. See log for details.");
@@ -179,35 +193,35 @@ public class Server implements Runnable {
         return in.nextLine();
     }
      
-    private static X509Certificate genSSC(KeyPair kp, String domainName){
-        X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
-        
-        // Serial number, issuer, validity period and Subject
-            //'XXX' Must be a positive integer
-        int sr = -1;
-        while( sr < 0 ){
-            sr = new SecureRandom().nextInt();
-        }
-        v3CertGen.setSerialNumber(BigInteger.valueOf(sr)); 
-        
-        
-        
-        v3CertGen.setIssuerDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));  
-        v3CertGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));  
-        v3CertGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365*10)));  
-        v3CertGen.setSubjectDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));
-        
-        // Set the public key of the key pair and the signing algorithm to the cert generator
-        v3CertGen.setPublicKey(kp.getPublic());  
-        v3CertGen.setSignatureAlgorithm("MD5WithRSAEncryption");
-        
-        X509Certificate PKCertificate = null;
-        try {
-            // Generate Certificate
-            PKCertificate = v3CertGen.generateX509Certificate(kp.getPrivate());
-        } catch (SecurityException | SignatureException | InvalidKeyException ex) {
-            logger.debug(ex.getLocalizedMessage(), ex);
-        }
-        return PKCertificate;
-    }
+//    private static X509Certificate genSSC(KeyPair kp, String domainName){
+//        X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+//        
+//        // Serial number, issuer, validity period and Subject
+//            //'XXX' Must be a positive integer
+//        int sr = -1;
+//        while( sr < 0 ){
+//            sr = new SecureRandom().nextInt();
+//        }
+//        v3CertGen.setSerialNumber(BigInteger.valueOf(sr)); 
+//        
+//        
+//        
+//        v3CertGen.setIssuerDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));  
+//        v3CertGen.setNotBefore(new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30));  
+//        v3CertGen.setNotAfter(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 365*10)));  
+//        v3CertGen.setSubjectDN(new X509Principal("CN=" + domainName + ", OU=None, O=None L=None, C=None"));
+//        
+//        // Set the public key of the key pair and the signing algorithm to the cert generator
+//        v3CertGen.setPublicKey(kp.getPublic());  
+//        v3CertGen.setSignatureAlgorithm("MD5WithRSAEncryption");
+//        
+//        X509Certificate PKCertificate = null;
+//        try {
+//            // Generate Certificate
+//            PKCertificate = v3CertGen.generateX509Certificate(kp.getPrivate());
+//        } catch (SecurityException | SignatureException | InvalidKeyException ex) {
+//            logger.debug(ex.getLocalizedMessage(), ex);
+//        }
+//        return PKCertificate;
+//    }
 }

@@ -150,7 +150,7 @@ public class Client implements Runnable {
                         peer.send(msg, args[0]);
                     }
                 }else if (input.startsWith("/keypair")) {
-                    String keyPairReturn = server.genKeyPair(args[0], 30, 2048, "passw0rd");
+                    String keyPairReturn = server.genKeyPair(args[0], "2048", "passw0rd");
                     System.out.println("DEBUG: " + keyPairReturn);
                 }
             }
