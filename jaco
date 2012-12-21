@@ -3,13 +3,14 @@
 # The following vars can be overriden by exporting
 #
 # E.g:
-#  $ export LOG_PROPS=~/.schat_logging; jaco ns
+#  $ export LOG_PROPS=~/.schat-logging; jaco ns
 #
-: ${CHAT_JAR_FILE=chat-1.0-SNAPSHOT-jar-with-dependencies.jar}
+: ${CHAT_JAR_FILE=chat-1.0-jar-with-dependencies.jar}
 : ${CHAT_JAR=target/$CHAT_JAR_FILE}
 
 : ${LOG_PROPS=logging.properties}
 
+: ${CHAT_SSL=false}
 : ${DEBUG=false}
 
 # Print usage
@@ -19,12 +20,17 @@ usage() {
     echo "Options:"
     echo "  -j <jar_file>    Choose an alternative jar file."
     echo "  -l <log_prop>    Choose an alternative logging properties file."
+    echo "  -s               Turns SSL on (jacorb.security.support_ssl)"
+    echo "                   - should come before any other arguments"
+    echo "                   - default keystore is in .keystore"
+    echo "                   - not needed when -k is used"
     echo
     echo "  -i <file>        Set name service ior filnename (jacorb.naming.ior_filename)."
     echo "  -n <file|http>   Set name service initial reference (ORBInitRef.NameService)."
     echo "  -N <address>     Same as -n http://<address[:port]>/NS_Ref."
-    echo "  -P <port>        Set Object Adapter port (OAPort)."
-    echo "  -A <address>     Set Object Adapter address (OAAddress)."
+    echo "  -p <port>        Set Object Adapter port (OAPort or OASSLPort)."
+    echo "  -a <address>     Set Object Adapter address (OAAddress)."
+    echo "  -x <proxy:port>  Set proxy for IOR when inside firewall (jacorb.ior_proxy_address=iiop://)."
     echo
     echo "  -k <keystore>    Set an alternative location for the keystore (jacorb.security.keystore)."
     echo
@@ -48,17 +54,20 @@ fi
 declare -a jargs
 
 # Process some
-while getopts :j:l:n:N:i:A:P:D:k:dh opt; do
+while getopts :j:l:n:N:x:i:a:p:D:k:sdh opt; do
     case $opt in
         j) CHAT_JAR="$OPTARG"; CHAT_JAR_FILE="" ;;
         l) LOG_PROPS="$OPTARG" ;;
+        k|s) CHAT_SSL=true ;;
 
         i) jargs+=("-Djacorb.naming.ior_filename=\"$OPTARG\"") ;;
         n) jargs+=("-DORBInitRef.NameService=$OPTARG") ;;
         N) jargs+=("-DORBInitRef.NameService=http://$OPTARG/NS_Ref") ;;
+        x) jargs+=("-Djacorb.ior_proxy_address=iiop://$OPTARG")
+           jargs+=("-Djacorb.dns.enable=on") ;;
 
-        A) jargs+=("-DOAAddress=$OPTARG") ;;
-        P) jargs+=("-DOAPort=$OPTARG") ;;
+        a) jargs+=("-DOAAddress=$OPTARG") ;;
+        p) $CHAT_SSL && jargs+=("-DOASSLPort=$OPTARG") || jargs+=("-DOAPort=$OPTARG") ;;
         D) jargs+=("-D$OPTARG") ;;
 
         k) jargs+=("-Djacorb.security.keystore=$OPTARG") ;;
@@ -82,6 +91,11 @@ fi
 
 # Set classpath to jar with dependencies
 jargs=("-Xbootclasspath/p:\"${CHAT_JAR}\"" "${jargs[@]}")
+
+# Add support for ssl
+if $CHAT_SSL ; then
+    jargs+=("-Djacorb.security.support_ssl=on")
+fi
 
 # If logging properties file does not exist, extract from jar
 if [ ! -f "$LOG_PROPS" ]; then
