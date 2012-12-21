@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# The following vars can be overriden by exporting
+#
+# E.g:
+#  $ export LOG_PROPS=~/.schat-logging; jaco ns
+#
+: ${CHAT_JAR_FILE=chat-1.0-jar-with-dependencies.jar}
+: ${CHAT_JAR=target/$CHAT_JAR_FILE}
+
+: ${LOG_PROPS=logging.properties}
+
+: ${CHAT_SSL=false}
+: ${DEBUG=false}
+
+# Print usage
+usage() {
+    echo "Usage: $(basename $0) [opts] [alias] [other args]"
+    echo
+    echo "Options:"
+    echo "  -j <jar_file>    Choose an alternative jar file."
+    echo "  -l <log_prop>    Choose an alternative logging properties file."
+    echo "  -s               Turns SSL on (jacorb.security.support_ssl)"
+    echo "                   - should come before any other arguments"
+    echo "                   - default keystore is in .keystore"
+    echo "                   - not needed when -k is used"
+    echo
+    echo "  -i <file>        Set name service ior filnename (jacorb.naming.ior_filename)."
+    echo "  -n <file|http>   Set name service initial reference (ORBInitRef.NameService)."
+    echo "  -N <address>     Same as -n http://<address[:port]>/NS_Ref."
+    echo "  -p <port>        Set Object Adapter port (OAPort or OASSLPort)."
+    echo "  -a <address>     Set Object Adapter address (OAAddress)."
+    echo "  -x <proxy:port>  Set proxy for IOR when inside firewall (jacorb.ior_proxy_address=iiop://)."
+    echo
+    echo "  -k <keystore>    Set an alternative location for the keystore (jacorb.security.keystore)."
+    echo
+    echo "  -d               Debug java command produced."
+    echo "  -h               Show this help message and quit."
+    echo
+    echo "Aliases:"
+    echo "  ns      org.jacorb.naming.NameServer"
+    echo "  nmg     org.jacorb.naming.namemanager.NameManager"
+    echo "  Server  org.siriux.chat.cli.Server"
+    echo "  Client  org.siriux.chat.cli.Client"
+    echo
+}
+
+# Show usage if no arguments are provided
+if [ $# == 0 ]; then
+    set -- "-h"
+fi
+
+# Declare array to store the arguments to java
+declare -a jargs
+
+# Process some
+while getopts :j:l:n:N:x:i:a:p:D:k:sdh opt; do
+    case $opt in
+        j) CHAT_JAR="$OPTARG"; CHAT_JAR_FILE="" ;;
+        l) LOG_PROPS="$OPTARG" ;;
+        k|s) CHAT_SSL=true ;;
+
+        i) jargs+=("-Djacorb.naming.ior_filename=\"$OPTARG\"") ;;
+        n) jargs+=("-DORBInitRef.NameService=$OPTARG") ;;
+        N) jargs+=("-DORBInitRef.NameService=http://$OPTARG/NS_Ref") ;;
+        x) jargs+=("-Djacorb.ior_proxy_address=iiop://$OPTARG")
+           jargs+=("-Djacorb.dns.enable=on") ;;
+
+        a) jargs+=("-DOAAddress=$OPTARG") ;;
+        p) $CHAT_SSL && jargs+=("-DOASSLPort=$OPTARG") || jargs+=("-DOAPort=$OPTARG") ;;
+        D) jargs+=("-D$OPTARG") ;;
+
+        k) jargs+=("-Djacorb.security.keystore=$OPTARG") ;;
+
+        d) DEBUG=true ;;
+        h) usage; exit ;;
+
+       \?) echo "$(basename $0): ignoring unkown argument -$OPTARG" >&2 ;;
+        :) echo "$(basename $0): option -$OPTARG requires a value" >&2
+           exit 1 ;;
+    esac
+done
+
+# Remove processed arguments
+shift $((OPTIND-1))
+
+# If not from argument, allow jar to be overriden from local dir
+if [ -s "$CHAT_JAR_FILE" ]; then
+    CHAT_JAR="$CHAT_JAR_FILE"
+fi
+
+# Set classpath to jar with dependencies
+jargs=("-Xbootclasspath/p:\"${CHAT_JAR}\"" "${jargs[@]}")
+
+# Add support for ssl
+if $CHAT_SSL ; then
+    jargs+=("-Djacorb.security.support_ssl=on")
+fi
+
+# If logging properties file does not exist, extract from jar
+if [ ! -f "$LOG_PROPS" ]; then
+    LOG_PROPS=logging.properties
+    jar xf "$CHAT_JAR" $LOG_PROPS
+fi
+
+# Add logging properties
+jargs+=("-Djava.util.logging.config.file=\"${LOG_PROPS}\"")
+
+# Loop remaining positional arguments (aliases and other arguments)
+for i in "$@"; do
+    case $i in
+         ns) jargs+=("org.jacorb.naming.NameServer") ;;
+        nmg) jargs+=("org.jacorb.naming.namemanager.NameManager") ;;
+
+        Server) jargs+=("org.siriux.chat.cli.Server") ;;
+        Client) jargs+=("org.siriux.chat.cli.Client") ;;
+
+        *) jargs+=("$i") ;;
+    esac
+    shift
+done
+
+# Execute
+java_cmd="java ${jargs[@]}"
+
+if $DEBUG ; then
+    echo $java_cmd
+else
+    eval $java_cmd
+fi
+
