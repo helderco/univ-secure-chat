@@ -65,7 +65,7 @@ To use a web server for providing the name service:
 
 Then, any client/server is run with:
 
-`$ jaco -N <ip-of.remote.web-server>/NS_Ref {Server|Client}`
+`$ jaco -N <ip-of.remote.web-server> {Server|Client}`
 
 ### Shared filesystem
 
