@@ -126,3 +126,8 @@ To make server object behind the NAT accessible from outer network, the followin
 `$ jaco -x chat.siriux.org -p 5555 Server`
 
 Setup port forwarding in NAT and firewall according to their configuration guides. Note that port numbers should be the same, e,g. if server uses 15242 port it should have bound to the 15242 gateway port.
+
+
+## More information
+
+Problem set is in `docs` (portuguese).
